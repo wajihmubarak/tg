@@ -110,6 +110,5 @@ async def verify_code():
         return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
-    # Flask يحتاج لـ loop معين للتعامل مع Telethon (Async)
-    import asyncio
-    app.run(port=5000, debug=True, use_reloader=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
